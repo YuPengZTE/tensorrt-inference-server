@@ -269,7 +269,6 @@ GRPCServer::Create(
     LOG_INFO << "Starting a GRPCService at " << addr;
 
     grpc_servers->emplace_back(new GRPCServer(addr));
-    // ((*grpc_servers).back()).reset(new GRPCServer(addr));
     auto& grpc_server = grpc_servers->back();
 
     grpc_server->GetBuilder().SetMaxMessageSize(MAX_GRPC_MESSAGE_SIZE);
