@@ -46,8 +46,8 @@ namespace nvidia { namespace inferenceserver {
 class HTTPServerImpl : public HTTPServer {
  public:
   explicit HTTPServerImpl(
-      InferenceServer* server, std::vector<std::string> endpoints, int32_t port,
-      int thread_cnt)
+      InferenceServer* server, const std::vector<std::string>& endpoints,
+      int32_t port, int thread_cnt)
       : server_(server), endpoint_names_(endpoints), port_(port),
         thread_cnt_(thread_cnt),
         api_regex_(R"(/api/(health|profile|infer|status)(.*))"),
@@ -573,14 +573,12 @@ HTTPServer::Create(
         "HTTP is enabled but none of the service endpoints have a valid port "
         "assignment");
   }
-  (*http_servers).clear();
+  http_servers->clear();
   for (auto const& ep_map : port_map) {
     std::string addr = "0.0.0.0:" + std::to_string(ep_map.first);
     LOG_INFO << "Starting HTTPService at " << addr;
-    (*http_servers).push_back(nullptr);
-    ((*http_servers).back())
-        .reset(new HTTPServerImpl(
-            server, ep_map.second, ep_map.first, thread_cnt));
+    http_servers->emplace_back(
+        new HTTPServerImpl(server, ep_map.second, ep_map.first, thread_cnt));
   }
 
   return Status::Success;
