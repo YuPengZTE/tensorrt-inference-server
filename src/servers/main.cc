@@ -265,10 +265,10 @@ CheckPortCollision()
   // Check if HTTP and GRPC have shared ports
   std::sort(grpc_ports_.begin(), grpc_ports_.end());
   std::sort(http_ports_.begin(), http_ports_.end());
-  std::vector<int32_t> overlapping_ports(http_ports_.size());
-  std::vector<int>::iterator it = std::set_intersection(
-      grpc_ports_.begin(), grpc_ports_.end(), http_ports_.begin(), http_ports_.end(), back_inserter(overlapping_ports));
-  overlapping_ports.resize(it - overlapping_ports.begin());
+  std::vector<int32_t> overlapping_ports;
+  std::set_intersection(
+      grpc_ports_.begin(), grpc_ports_.end(), http_ports_.begin(),
+      http_ports_.end(), back_inserter(overlapping_ports));
   if (!overlapping_ports.empty()) {
     for (auto& overlapping_port : overlapping_ports) {
       if (overlapping_port != -1) {
@@ -280,16 +280,18 @@ CheckPortCollision()
   }
 
   // Check if Metric and GRPC have shared ports
-  if ((std::find(grpc_ports_.begin(), grpc_ports_.end(), metric_port) != grpc_ports_.end()) &&
-      (metric_port != -1)) {
+  if ((std::find(grpc_ports_.begin(), grpc_ports_.end(), metrics_port_) !=
+       grpc_ports_.end()) &&
+      (metrics_port_ != -1)) {
     LOG_ERROR << "The server cannot provide metrics on same port used for "
               << "gRPC requests";
     return true;
   }
 
   // Check if Metric and HTTP have shared ports
-  if ((std::find(http_ports_.begin(), http_ports_.end(), metric_port) != http_ports_.end()) &&
-      (metric_port != -1)) {
+  if ((std::find(http_ports_.begin(), http_ports_.end(), metrics_port_) !=
+       http_ports_.end()) &&
+      (metrics_port_ != -1)) {
     LOG_ERROR << "The server cannot provide metrics on same port used for "
               << "HTTP requests";
     return true;
@@ -646,10 +648,10 @@ Parse(nvidia::inferenceserver::InferenceServer* server, int argc, char** argv)
   }
 
   metrics_port_ = allow_metrics ? metrics_port : -1;
-  grpc_ports_ = {grpc_status_port_, grpc_health_port_,
-                  grpc_profile_port_, grpc_infer_port_};
-  http_ports_ = {http_status_port_, http_health_port_,
-                  http_profile_port_, http_infer_port_};
+  grpc_ports_ = {grpc_status_port_, grpc_health_port_, grpc_profile_port_,
+                 grpc_infer_port_};
+  http_ports_ = {http_status_port_, http_health_port_, http_profile_port_,
+                 http_infer_port_};
 
   // Check if HTTP, GRPC and metrics port clash
   if (CheckPortCollision())
